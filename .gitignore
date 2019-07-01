@@ -91,7 +91,7 @@ ipython_config.py
 #Pipfile.lock
 
 # celery beat schedule file
-celerybeat-schedule
+celerybeat-schedulegit 
 
 # SageMa.idea/
 environ/

@@ -2,6 +2,19 @@ class Charts:
     def __init__(self, charts_in=None, cycle=''):
         self.__charts = charts_in
         self.__cycle = cycle
+        self.__current_index = 0
+
+    def __iter__(self): 
+        return self
+
+    def __next__(self):
+        if self.__current_index < len(self.__charts):
+            chart = self.__charts[self.__current_index]
+            self.__current_index += 1
+            return chart
+        else:
+            self.__current_index = 0
+            raise StopIteration
 
     def get_charts(self):
         return self.__charts

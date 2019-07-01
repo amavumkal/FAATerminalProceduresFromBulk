@@ -8,9 +8,7 @@ import os
 import pickle
 from charts import *
 
-
 class DttpBulk:
-
     def __init__(self, download_directory):
         self.__ZIP_FILE_LETTERS = ['D', 'C', 'B', 'A']
         self.__charts = None
@@ -20,7 +18,6 @@ class DttpBulk:
 
     def set_charts(self,charts_in):
         self.__charts = charts_in 
-        
 
     #pre: method takes no arguments.
     #post: downloads charts from faa digital products site and saves to
@@ -40,6 +37,11 @@ class DttpBulk:
             return self.__charts
         else:
             raise Exception('Charts list is empty')
+
+    # def cycyle_through_charts(self):
+    #     for chart in self.__charts:
+    #         print(chart.get_pdf_name())
+    #         print(chart.get_procedure_name())
 
     @staticmethod
     def download_metafile(dest_directory=None):
@@ -70,14 +72,9 @@ class DttpBulk:
                         chart.set_volume_name(volume_name)
                         chart.set_airport_id_icao(airport_id_icao)
                         chart.set_airport_id(airport_id)
+                        chart.set_pdf_name(record.find('pdf_name').text)
+                        chart.set_procedure_name(record.find('chart_name').text)
                         charts.append_chart(chart)
-   
-   
-   
-   
-   
-   
-   
         print('Done Parsing: ' + fileIn)
         return charts
 
@@ -94,7 +91,6 @@ class DttpBulk:
         cycle_month = str(date_increment.month)
         cycle_day = str(date_increment.day)
         cycle_year = str(date_increment.year)[-2:]
-        print (cycle_day);
         if (len(cycle_month) == 1):  # if single digit month adds 0 to resulting string
             cycle_month = "0" + cycle_month
         if (len(cycle_day) == 1):  # if single digit month adds 0 to resulting string
@@ -102,16 +98,15 @@ class DttpBulk:
 
         return (cycle_year + cycle_month + cycle_day)
 
-
 if __name__ == "__main__":
-    
-    DttpBulk = DttpBulk(download_directory='./')
+    dttpBulk = DttpBulk(download_directory='./')
     print('downloading meta file')
     DttpBulk.download_metafile('./meta')
-    print('downloading charts');
-    DttpBulk.download();
-    DttpBulk.set_charts(DttpBulk.parse_metafile_xml('./meta/d-TPP_Metafile.xml'))
-    DttpBulk.pickle_up_charts()
+    # print('downloading charts')
+    # dttpBulk.download()
+    dttpBulk.set_charts(DttpBulk.parse_metafile_xml('meta/d-TPP_Metafile.xml'))
+    dttpBulk.cycyle_through_charts()
+    
 
 
 
