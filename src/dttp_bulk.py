@@ -20,7 +20,7 @@ class DttpBulk:
         self.__charts = charts_in 
 
     #pre: method takes no arguments.
-    #post: downloads charts from faa digital products site and saves to
+    #post: downloads charts from faa digital proand above, the specified commit will be merged to the current active branch. Most of the time, you will want to merge a branch with ducts site and saves to
     def download(self):
         current_working_directory = os.getcwd()
         os.chdir(self.__DOWNLOAD_DIRECTORY)
@@ -45,18 +45,16 @@ class DttpBulk:
 
     @staticmethod
     def download_metafile(dest_directory=None):
-        URL = 'http://aeronav.faa.gov/d-tpp/1907/xml_data/d-tpp_Metafile.xml'
+        URL = 'http://aeronav.faa.gov/d-tpp/%s/xml_data/d-tpp_Metafile.xml' % (DttpBulk.get_four_digit_cycle())
         request = requests.get(URL)
         if (dest_directory):
             open(dest_directory + '/d-TPP_Metafile.xml', 'wb').write(request.content)
-        else:
             raise Exception("destination directory not defined")
 
     @staticmethod
     def parse_metafile_xml(fileIn):
-        charts = Charts()
-        charts_object = None
         tree = ET.parse(fileIn)
+        charts = Charts(cycle=DttpBulk.get_four_digit_cycle)
         states = tree.findall('state_code')
         print('Parsing: ' + fileIn)
         for state in states:
@@ -74,6 +72,7 @@ class DttpBulk:
                         chart.set_airport_id(airport_id)
                         chart.set_pdf_name(record.find('pdf_name').text)
                         chart.set_procedure_name(record.find('chart_name').text)
+                        chart.set_chart_type(record.find('chart_code').text)
                         charts.append_chart(chart)
         print('Done Parsing: ' + fileIn)
         return charts
@@ -83,7 +82,7 @@ class DttpBulk:
         PRESENT = datetime.datetime.now()  # present time
         TIME_DELTA = datetime.timedelta(days=28)  # used to increase date by 28 days. FAA chart cycle
         CYCLE_BASE = datetime.datetime(2016, 8, 18)  # reference point for faa cycles
-        date_increment = CYCLE_BASE;
+        date_increment = CYCLE_BASE
         while ((date_increment + TIME_DELTA) <= PRESENT):  # loop while cycle date is less than current date.
             date_increment = date_increment + TIME_DELTA
 
@@ -98,6 +97,24 @@ class DttpBulk:
 
         return (cycle_year + cycle_month + cycle_day)
 
+    @staticmethod 
+    def get_four_digit_cycle(): 
+        PRESENT = datetime.datetime.now()  # present time
+        TIME_DELTA = datetime.timedelta(days=28)  # used to increase date by 28 days. FAA chart cycle
+        CYCLE_BASE = datetime.datetime(2016, 8, 18)  # reference point for faa cycles
+        date_increment = CYCLE_BASE
+        while ((date_increment + TIME_DELTA) <= PRESENT):  # loop while cycle date is less than current date.
+            date_increment = date_increment + TIME_DELTA
+
+        date_increment = date_increment + TIME_DELTA  # adds TIME_DELTA one more time since faa cycle attribute is based on end of cycle
+        cycle_month = str(date_increment.month)
+        cycle_year = str(date_increment.year)[-2:]
+        if (len(cycle_month) == 1):  # if single digit month adds 0 to resulting string
+            cycle_month = "0" + cycle_month
+       
+
+        return (cycle_year + cycle_month)
+
 if __name__ == "__main__":
     dttpBulk = DttpBulk(download_directory='./')
     print('downloading meta file')
@@ -105,7 +122,7 @@ if __name__ == "__main__":
     # print('downloading charts')
     # dttpBulk.download()
     dttpBulk.set_charts(DttpBulk.parse_metafile_xml('meta/d-TPP_Metafile.xml'))
-    dttpBulk.cycyle_through_charts()
+    dttpBulk.get_charts().save_to_mongodb()
     
 
 
