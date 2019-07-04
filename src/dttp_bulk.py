@@ -9,8 +9,7 @@ import pickle
 from charts import *
 
 class DttpBulk:
-    def __init__(self, download_directory):
-        self.__ZIP_FILE_LETTERS = ['D', 'C', 'B', 'A']
+    def __init__(self, download_directory):  
         self.__charts = None
         self.__DOWNLOAD_DIRECTORY = download_directory
         if not os.path.exists(self.__DOWNLOAD_DIRECTORY):
@@ -24,7 +23,8 @@ class DttpBulk:
     def download(self):
         current_working_directory = os.getcwd()
         os.chdir(self.__DOWNLOAD_DIRECTORY)
-        for letter in self.__ZIP_FILE_LETTERS:
+        ZIP_FILE_LETTERS = ['D', 'C', 'B', 'A']
+        for letter in ZIP_FILE_LETTERS:
             url = 'https://aeronav.faa.gov/upload_313-d/terminal/DDTPP%s_%s.zip' % (letter, self.get_current_cycl())
             print('Downloading zip file: ' + url)
             request = requests.get(url)
@@ -116,15 +116,7 @@ class DttpBulk:
         return (cycle_year + cycle_month)
 
 if __name__ == "__main__":
-    dttpBulk = DttpBulk(download_directory='./')
-    print('downloading meta file')
-    DttpBulk.download_metafile('./meta')
-    # print('downloading charts')
-    # dttpBulk.download()
-    dttpBulk.set_charts(DttpBulk.parse_metafile_xml('meta/d-TPP_Metafile.xml'))
-    dttpBulk.get_charts().save_to_mongodb()
-    
-
+    print('dttp_bulk')
 
 
 
