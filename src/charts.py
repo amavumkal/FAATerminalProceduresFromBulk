@@ -35,7 +35,7 @@ class Charts:
         self.__cycle = cycle
 
     def save_to_mongodb (self, mongo_host = None): 
-        result = None
+        # result = None
 
         if self.__charts == None:
             raise Exception('no charts to store in db')
@@ -44,26 +44,25 @@ class Charts:
                 if mongo_host:
                     self.__client = MongoClient(mongo_host)
                 else:
-                    self.__client = MongoClient(self.__MONGO_DB_HOST)
+                    self.__client = MongoClient(port=27017)
             except:
                 print('unable to connect to db', file=sys.stderr)
         db = self.__client.aviation
         for chart in self.__charts:
-            chart = {
+            chart_row = {
                 'cycle': self.__cycle,
                 'airport_id_icao': chart.get_airport_id_icao(),
                 'airport_id': chart.get_airport_id(),
                 'state': chart.get_state_name(),
                 'procedure_name': chart.get_procedure_name(),
                 'pdf_name': chart.get_pdf_name(),
-                'chart_name': chart.get_chart_name(),
                 'volume': chart.get_volume_name(),
                 'type': chart.get_chart_type()
             }
             try:
-                result = db.charts.insert_one(chart)
-            except:
-                print('error occurred unable to insert chart: ' + chart.get_procedure_name(), file=sys.stderr)
+                result = db.charts.insert_one(chart_row)
+            except Exception as e:
+                print('error occurred unable to insert chart: ' + chart.get_procedure_name() + '\nException: ' + str(e), file=sys.stderr)
 
 class Chart:
     def __init__(self):

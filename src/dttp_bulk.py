@@ -49,12 +49,13 @@ class DttpBulk:
         request = requests.get(URL)
         if (dest_directory):
             open(dest_directory + '/d-TPP_Metafile.xml', 'wb').write(request.content)
+        else:
             raise Exception("destination directory not defined")
 
     @staticmethod
     def parse_metafile_xml(fileIn):
         tree = ET.parse(fileIn)
-        charts = Charts(cycle=DttpBulk.get_four_digit_cycle)
+        charts = Charts(cycle=DttpBulk.get_four_digit_cycle())
         states = tree.findall('state_code')
         print('Parsing: ' + fileIn)
         for state in states:
@@ -105,7 +106,6 @@ class DttpBulk:
         date_increment = CYCLE_BASE
         while ((date_increment + TIME_DELTA) <= PRESENT):  # loop while cycle date is less than current date.
             date_increment = date_increment + TIME_DELTA
-
         date_increment = date_increment + TIME_DELTA  # adds TIME_DELTA one more time since faa cycle attribute is based on end of cycle
         cycle_month = str(date_increment.month)
         cycle_year = str(date_increment.year)[-2:]
