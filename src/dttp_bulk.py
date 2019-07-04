@@ -21,6 +21,9 @@ class DttpBulk:
     #pre: method takes no arguments.
     #post: downloads charts from faa digital proand above, the specified commit will be merged to the current active branch. Most of the time, you will want to merge a branch with ducts site and saves to
     def download(self):
+        print('download fn top' + self.__DOWNLOAD_DIRECTORY)
+        META_FILE_DIR = './meta'
+        DttpBulk.download_metafile(META_FILE_DIR)
         current_working_directory = os.getcwd()
         os.chdir(self.__DOWNLOAD_DIRECTORY)
         ZIP_FILE_LETTERS = ['D', 'C', 'B', 'A']
@@ -29,28 +32,46 @@ class DttpBulk:
             print('Downloading zip file: ' + url)
             request = requests.get(url)
             file = zipfile.ZipFile(BytesIO(request.content))
-            file.extractall(path=self.__DOWNLOAD_DIRECTORY)
+            file.extractall(path='./')
         os.chdir(current_working_directory)
+        self.__charts = DttpBulk.parse_metafile_xml('./meta/d-TPP_Metafile.xml')
+        self.organize_charts()
 
     def get_charts(self):
         if self.__charts:
             return self.__charts
         else:
             raise Exception('Charts list is empty')
-
-    # def cycyle_through_charts(self):
-    #     for chart in self.__charts:
-    #         print(chart.get_pdf_name())
-    #         print(chart.get_procedure_name())
-
+   
+    def organize_charts(self):
+        if not self.__charts:
+            raise Exception('Charts list is empty')
+        PWD = os.getcwd()
+        chart_dict = {}
+        os.chdir(self.__DOWNLOAD_DIRECTORY)
+        for chart in self.__charts:
+            PDF_NAME = chart.get_pdf_name()
+            if PDF_NAME in chart_dict:
+                continue
+            else:
+                chart_dict[PDF_NAME] = chart
+        
+        for file_name in os.listdir('./'):
+            if file_name in chart_dict:
+                chart = chart_dict[file_name]
+            else:
+                continue
+            VOLUME = chart.get_volume_name()
+            if not os.path.exists(VOLUME):
+                os.mkdir(VOLUME)
+            shutil.move(file_name, VOLUME)
+        os.chdir(PWD)
     @staticmethod
-    def download_metafile(dest_directory=None):
+    def download_metafile(dest_directory):
         URL = 'http://aeronav.faa.gov/d-tpp/%s/xml_data/d-tpp_Metafile.xml' % (DttpBulk.get_four_digit_cycle())
         request = requests.get(URL)
-        if (dest_directory):
-            open(dest_directory + '/d-TPP_Metafile.xml', 'wb').write(request.content)
-        else:
-            raise Exception("destination directory not defined")
+        open(dest_directory + '/d-TPP_Metafile.xml', 'wb').write(request.content)
+  
 
     @staticmethod
     def parse_metafile_xml(fileIn):
@@ -117,6 +138,3 @@ class DttpBulk:
 
 if __name__ == "__main__":
     print('dttp_bulk')
-
-
-
