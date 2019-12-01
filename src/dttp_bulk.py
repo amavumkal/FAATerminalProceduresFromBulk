@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 import os
 import pickle
 from charts import *
+from png import *
 
 class DttpBulk:
     def __init__(self, download_directory):  
@@ -71,7 +72,6 @@ class DttpBulk:
         URL = 'http://aeronav.faa.gov/d-tpp/%s/xml_data/d-tpp_Metafile.xml' % (DttpBulk.get_four_digit_cycle())
         request = requests.get(URL)
         open(dest_directory + '/d-TPP_Metafile.xml', 'wb').write(request.content)
-  
 
     @staticmethod
     def parse_metafile_xml(fileIn):
@@ -116,7 +116,6 @@ class DttpBulk:
             cycle_month = "0" + cycle_month
         if (len(cycle_day) == 1):  # if single digit month adds 0 to resulting string
             cycle_day = "0" + cycle_day
-
         return (cycle_year + cycle_month + cycle_day)
 
     @staticmethod 
@@ -132,9 +131,8 @@ class DttpBulk:
         cycle_year = str(date_increment.year)[-2:]
         if (len(cycle_month) == 1):  # if single digit month adds 0 to resulting string
             cycle_month = "0" + cycle_month
-       
-
         return (cycle_year + cycle_month)
 
 if __name__ == "__main__":
-    print('dttp_bulk')
+    convert = Convert_To_PNG()
+    convert.convert_pdfs_to_png('/home/arun/code/FAATerminalProceduresFromBulk/src/charts/EC-1')

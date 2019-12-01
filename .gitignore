@@ -116,6 +116,7 @@ env/
 venv/
 ENV/
 environ
+.idea/
 env.bak/.idea/
 environ/
 .vscode/
