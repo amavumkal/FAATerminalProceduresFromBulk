@@ -42,9 +42,16 @@ class DttpBulk:
         for letter in ZIP_FILE_LETTERS:
             time.sleep(2)
             url = 'https://aeronav.faa.gov/upload_313-d/terminal/DDTPP%s_%s.zip' % (letter, self.get_current_cycl())
+            local_filename = url.split('/')[-1]
             print('Downloading zip file: ' + url)
-            request = requests.get(url)
-            file = zipfile.ZipFile(BytesIO(request.content))
+            with requests.get(url, stream=True) as r:
+                r.raise_for_status()
+                with open(local_filename, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+            file = zipfile.ZipFile(local_filename)
+            os.remove(local_filename)
             file.extractall(path='./')
         os.chdir(current_working_directory)
         self.__charts = DttpBulk.parse_metafile_xml('./meta/d-TPP_Metafile.xml')
