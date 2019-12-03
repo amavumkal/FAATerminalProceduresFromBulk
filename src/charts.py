@@ -1,5 +1,6 @@
 import sys
 from pymongo import MongoClient
+import json
 
 class Charts:
     def __init__(self, charts_in=None, cycle=''):
@@ -7,7 +8,8 @@ class Charts:
         self.__cycle = cycle
         self.__current_index = 0
         self.__client = None
-        self.__MONGO_DB_HOST = '127.0.0.1:27017'
+        self.__SECRET_JSON = json.load(open('secret.json', 'r'))
+        self.__MONGO_DB_HOST = self.__SECRET_JSON['host']
     def __iter__(self): 
         return self
 
@@ -44,7 +46,7 @@ class Charts:
                 if mongo_host:
                     self.__client = MongoClient(mongo_host)
                 else:
-                    self.__client = MongoClient(port=27017)
+                    self.__client = MongoClient(port=self.__SECRET_JSON['port'])
             except:
                 print('unable to connect to db', file=sys.stderr)
         db = self.__client.aviation

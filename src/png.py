@@ -11,14 +11,10 @@ class Convert_To_PNG:
     def __init__(self):
         self.charts = None
 
-    def __change_pdf_name_to_png(self, pdfName):
-        ## //ToDo
-        print('hello')
     def convert_pdfs_to_png(self, chart_directory):
-        # print(os.getcwd())
-        # print(os.listdir(chart_directory))
         CURRENT_DIRECTORY = os.getcwd()
         os.chdir(chart_directory);
+        print('Converting Charts')
         for file in os.listdir('./'):
             if file[-4:].upper() == '.PDF':
                 with Image(filename=file, resolution=75) as img:
@@ -29,15 +25,6 @@ class Convert_To_PNG:
                         print('writing: ' + PNG_NAME)
                         os.remove(file)
                         print('removed: ' + file)
-            # pdf = Image(filename=file, resolution=50)
-            # pdfImage = pdf.convert('png')
-            # print(os.getcwd())
-            # pdfImage.save(filename=file)
-            # print(file)
-            # for img in pdfImage.sequence:
-            #     page=Image(image=img)
-            #     page.save(filename=str(i) + '.png')
-            #     i += 1
         os.chdir(CURRENT_DIRECTORY)
 
     def __delete_pdfs(self, chart_directory):
