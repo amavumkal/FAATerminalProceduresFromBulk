@@ -5,8 +5,7 @@ import shutil
 from io import BytesIO
 import xml.etree.ElementTree as ET
 import os
-import pickle
-from charts import *
+import time
 from png import *
 
 class DttpBulk:
@@ -15,20 +14,32 @@ class DttpBulk:
         self.__DOWNLOAD_DIRECTORY = download_directory
         if not os.path.exists(self.__DOWNLOAD_DIRECTORY):
             os.mkdir(self.__DOWNLOAD_DIRECTORY)
+        # else:
+        #     if os.path.isdir(self.__DOWNLOAD_DIRECTORY):
+        #         os.system('rm -rf ' + self.__DOWNLOAD_DIRECTORY + '/*')
 
     def set_charts(self,charts_in):
-        self.__charts = charts_in 
+        self.__charts = charts_in
+
+    def __clear_dload_dir(self):
+        for sub_dir in os.listdir(self.__DOWNLOAD_DIRECTORY):
+            if os.path.isdir(sub_dir):
+                shutil.rmtree(sub_dir)
+            elif os.path.isfile(sub_dir):
+                os.remove(sub_dir)
 
     #pre: method takes no arguments.
     #post: downloads charts from faa digital proand above, the specified commit will be merged to the current active branch. Most of the time, you will want to merge a branch with ducts site and saves to
     def download(self):
-        print('download fn top' + self.__DOWNLOAD_DIRECTORY)
         META_FILE_DIR = './meta'
+        print('Downloading metafile')
         DttpBulk.download_metafile(META_FILE_DIR)
         current_working_directory = os.getcwd()
         os.chdir(self.__DOWNLOAD_DIRECTORY)
+        self.__clear_dload_dir()
         ZIP_FILE_LETTERS = ['D', 'C', 'B', 'A']
         for letter in ZIP_FILE_LETTERS:
+            time.sleep(2)
             url = 'https://aeronav.faa.gov/upload_313-d/terminal/DDTPP%s_%s.zip' % (letter, self.get_current_cycl())
             print('Downloading zip file: ' + url)
             request = requests.get(url)
@@ -67,9 +78,19 @@ class DttpBulk:
                 os.mkdir(VOLUME)
             shutil.move(file_name, VOLUME)
         os.chdir(PWD)
+
+    def convert_to_png(self):
+        FOLDERS = os.listdir(self.__DOWNLOAD_DIRECTORY)
+        png_convert = Convert_To_PNG()
+        for folder in FOLDERS:
+            FOLDER_PATH = os.path.join(self.__DOWNLOAD_DIRECTORY, folder)
+            if os.path.isdir(FOLDER_PATH):
+                png_convert.convert_pdfs_to_png(FOLDER_PATH)
+
     @staticmethod
     def download_metafile(dest_directory):
         URL = 'http://aeronav.faa.gov/d-tpp/%s/xml_data/d-tpp_Metafile.xml' % (DttpBulk.get_four_digit_cycle())
+        print(URL)
         request = requests.get(URL)
         open(dest_directory + '/d-TPP_Metafile.xml', 'wb').write(request.content)
 
@@ -108,7 +129,7 @@ class DttpBulk:
         while ((date_increment + TIME_DELTA) <= PRESENT):  # loop while cycle date is less than current date.
             date_increment = date_increment + TIME_DELTA
 
-        date_increment = date_increment + TIME_DELTA  # adds TIME_DELTA one more time since faa cycle attribute is based on end of cycle
+        # date_increment = date_increment + TIME_DELTA  # adds TIME_DELTA one more time since faa cycle attribute is based on end of cycle
         cycle_month = str(date_increment.month)
         cycle_day = str(date_increment.day)
         cycle_year = str(date_increment.year)[-2:]
