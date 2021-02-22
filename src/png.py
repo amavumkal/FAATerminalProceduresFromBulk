@@ -27,6 +27,14 @@ class Convert_To_PNG:
                         print('removed: ' + file)
         os.chdir(CURRENT_DIRECTORY)
 
+    def convert_pdf_to_png(self, chart):
+        if file[-4:].upper() == '.PDF':
+            with Image(filename=file, resolution=75) as img:
+                with Image(width=img.width, height=img.height, background=Color("white")) as bg:
+                    bg.composite(img, 0, 0)
+                    PNG_NAME = file[:-4] + '.PNG'
+                    return bg
+
     def __delete_pdfs(self, chart_directory):
         current_working_directory = os.getcwd()
         os.chdir(chart_directory)

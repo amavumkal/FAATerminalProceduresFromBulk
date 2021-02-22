@@ -87,6 +87,7 @@ class DttpBulk:
             shutil.move(file_name, VOLUME)
         os.chdir(PWD)
 
+    #bulk convert entire dload directory to png
     def convert_to_png(self):
         FOLDERS = os.listdir(self.__DOWNLOAD_DIRECTORY)
         png_convert = Convert_To_PNG()
@@ -94,6 +95,10 @@ class DttpBulk:
             FOLDER_PATH = os.path.join(self.__DOWNLOAD_DIRECTORY, folder)
             if os.path.isdir(FOLDER_PATH):
                 png_convert.convert_pdfs_to_png(FOLDER_PATH)
+
+    def convert_pdf_to_png(self, file):
+
+
 
     @staticmethod
     def download_metafile(dest_directory):
