@@ -1,4 +1,4 @@
-secret.json
+src/secret.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
