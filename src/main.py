@@ -1,5 +1,4 @@
 from dttp_bulk import *
-from png import *
 import json
 
 def main():

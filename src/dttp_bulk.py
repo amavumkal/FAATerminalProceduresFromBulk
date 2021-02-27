@@ -3,11 +3,10 @@ import requests
 import datetime
 import xml.etree.ElementTree as ET
 import io
-from png import *
+from src.png_conversion.png import *
 from aws_s3 import AWSS3
-from models import Chart, Airport
-from src.dao.charts_dao import CHARTS_DAO
-
+from dttp.models import Chart, Airport
+from dttp.service import ChartService
 
 class DttpBulk:
     def __init__(self, download_directory):
@@ -103,6 +102,7 @@ class DttpBulk:
             fileIn = DttpBulk.download_metafile()
         tree = ET.parse(fileIn)
         states = tree.findall('state_code')
+        cycle = DttpBulk.get_current_cycl()
         print('Parsing metafile')
         for state in states:
             state_name = state.attrib['ID']
@@ -114,6 +114,7 @@ class DttpBulk:
                     airport_id = airport.attrib['apt_ident']
                     for record in airport.findall('record'):
                         chart = Chart()
+                        chart.cycle = cycle
                         airport = Airport()
                         airport.state = state_name
                         airport.city = city_name
@@ -165,10 +166,11 @@ class DttpBulk:
 
 
 if __name__ == "__main__":
-    #DttpBulk('dttp_zipfiles').download_bulk_files()
-    #print(DttpBulk.get_four_digit_cycle())
-    #print(DttpBulk.get_current_cycl())
     meta_file = DttpBulk.download_metafile()
     charts = DttpBulk.parse_metafile_xml(meta_file)
-    charts_dao = CHARTS_DAO()
-    charts_dao.add_charts(charts)
+    charts_service = ChartService()
+    charts_service.add_charts(charts)
+    #DttpBulk('dttp_zipfiles').download_bulk_files()
+    #print(DttpBulk.get_four_digit_cyecle())
+    #print(DttpBulk.get_current_cycl())
+

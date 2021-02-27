@@ -27,5 +27,6 @@ class Chart(Base):
     volume = Column(String(4), nullable=False)
     procedure_name = Column(String(50), nullable=False)
     chart_type = Column(String(10), nullable=False)
+    cycle = Column(Integer, nullable=False)
     airport_id = Column(Integer, ForeignKey('airports.id'))
-    airport = relationship('Airport', back_populates='charts')
+    airport = relationship('Airport', cascade="merge")

@@ -15,7 +15,7 @@ class Convert_To_PNG:
         CURRENT_DIRECTORY = os.getcwd()
         os.chdir(chart_directory);
         print('Converting Charts')
-        for file in os.listdir('./'):
+        for file in os.listdir('../'):
             PNG_NAME = Convert_To_PNG.change_pdf_file_name_to_png(file)
             pdf_blob = self.convert_pdf_to_png(file)
             imageFile = open(PNG_NAME, "wb")
@@ -27,8 +27,8 @@ class Convert_To_PNG:
         os.chdir(CURRENT_DIRECTORY)
 
     def convert_pdf_to_png(self, chart_file):
-        if chart_file[-4:].upper() == '.PDF':
-            with Image(filename=chart_file, resolution=75) as img:
+        if chart_file.name[-4:].upper() == '.PDF':
+            with Image(file=chart_file, resolution=75) as img:
                 img.composite(img, 0, 0)
                 img.format = 'png'
                 return img.make_blob()
@@ -36,7 +36,7 @@ class Convert_To_PNG:
     def __delete_pdfs(self, chart_directory):
         current_working_directory = os.getcwd()
         os.chdir(chart_directory)
-        filelist = [f for f in os.listdir(".") if f.endswith(".PDF")]
+        filelist = [f for f in os.listdir("..") if f.endswith(".PDF")]
         for f in filelist:
             os.remove(f)
         os.chdir(current_working_directory)
