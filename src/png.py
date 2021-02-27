@@ -1,10 +1,6 @@
 import os
-import sys
-import shutil
-import pickle
 from wand.image import Image
-from wand.color import Color
-from charts import *
+
 
 class Convert_To_PNG:
 
