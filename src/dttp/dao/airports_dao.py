@@ -1,5 +1,4 @@
-from src.dttp.models import Airport
-
+from ..models import Airport
 
 class AIRPORTS_DAO:
 

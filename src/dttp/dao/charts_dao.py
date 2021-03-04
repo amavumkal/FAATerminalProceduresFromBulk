@@ -1,4 +1,4 @@
-from src.dttp.models import Chart
+from ..models import Chart
 
 class CHARTS_DAO:
 
@@ -9,4 +9,6 @@ class CHARTS_DAO:
     def chartExistsByChartNameAndAiportIdAndCycle(self, session):
         return session.query
 
+    def get_all_charts_by_cycle(self, cycle, session):
+        return session.query(Chart).filter_by(cycle=cycle).all()
 
