@@ -1,3 +1,4 @@
+#!/bin/bash
 
 PACKAGE_DIR='./dist/package'
 ZIP_FILE_NAME=lmbd.zip
@@ -24,8 +25,8 @@ function create_dir() {
 }
 
 function create_main() {
-  touch $PACKAGE_DIR'/main.py'
-  echo "$1" > $PACKAGE_DIR'/main.py'
+  touch $PACKAGE_DIR'/app.py'
+  echo "$1" > $PACKAGE_DIR'/app.py'
 }
 
 # @$1 - name of function on aws.
@@ -68,6 +69,18 @@ function deploy_unzip_fn() {
   deactivate
 }
 
+function deploy_png_fn() {
+  cp /etc/ImageMagick-6/policy.xml .
+  cat ./png_convert_docker.txt > Dockerfile
+  docker rmi png_convert_fn
+  docker rmi png_convert_fn:latest 008274210142.dkr.ecr.us-east-2.amazonaws.com/png_convert_fn:latest
+  docker build -t png_convert_fn .
+  docker tag png_convert_fn:latest 008274210142.dkr.ecr.us-east-2.amazonaws.com/png_convert_fn:latest
+  rm policy.xml
+  sudo aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin 008274210142.dkr.ecr.us-east-2.amazonaws.com
+  docker push 008274210142.dkr.ecr.us-east-2.amazonaws.com/png_convert_fn:latest
+}
+
 
 
 while getopts ":d:" opt; do
@@ -76,6 +89,9 @@ while getopts ":d:" opt; do
       case $OPTARG in
         unzip)
           deploy_unzip_fn
+          ;;
+        png)
+          deploy_png_fn
           ;;
         *)
           echo "Invalid argument: $OPTARG" >&2

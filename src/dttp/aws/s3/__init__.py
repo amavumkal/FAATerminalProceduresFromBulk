@@ -6,12 +6,12 @@ import json
 import os
 
 logger = logging.getLogger()
-SECRET_JSON_LOC = '../../../secret.json'
+SECRET_JSON_LOC = './secret.json'
 
 class AWSS3:
 
     def __init__(self, bucket=None):
-        if(os.path.isdir(SECRET_JSON_LOC)):
+        if(os.path.isfile(SECRET_JSON_LOC)):
             with open(SECRET_JSON_LOC, "r") as json_file:
                 self.__bucket_name = bucket if bucket else json.load(json_file)['bucketName']
         else:
@@ -27,8 +27,11 @@ class AWSS3:
         bucket_name = bucket if bucket else self.__bucket_name
         if not file_in.name:
             raise Exception('no name attribute in file')
+        if not bucket_name:
+            raise Exception('Bucket name not defined')
         file_name = file_in.name
         self.__client.upload_fileobj(file_in, bucket_name, folder + '/' + file_name if folder else file_name)
+
 
     def delete_obj(self, key, bucket=None):
         bucket_name = bucket if bucket else self.__bucket_name
@@ -42,7 +45,9 @@ class AWSS3:
         bucket_name = bucket if bucket else self.__bucket_name
         logger.critical('Reading {} from {}'.format(key, bucket_name))
         obj = self.__client.get_object(Bucket=bucket_name, Key=key)
-        return BytesIO(obj['Body'].read())
+        file = BytesIO(obj['Body'].read())
+        file.name = key
+        return file
 
 # if __name__ == '__main__':
 #     file = open('../../../chartzipurls.txt', 'rb')

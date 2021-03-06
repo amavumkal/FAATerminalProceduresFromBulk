@@ -13,7 +13,7 @@ class Convert_To_PNG:
 
     def convert_pdfs_to_png(self, chart_directory):
         CURRENT_DIRECTORY = os.getcwd()
-        os.chdir(chart_directory);
+        os.chdir(chart_directory)
         print('Converting Charts')
         for file in os.listdir('../../'):
             PNG_NAME = Convert_To_PNG.change_pdf_file_name_to_png(file)
@@ -23,7 +23,7 @@ class Convert_To_PNG:
             imageFile.close()
             print('writing: ' + PNG_NAME)
             os.remove(file)
-            print('removed: ' + file)
+            print('removd: ' + file)
         os.chdir(CURRENT_DIRECTORY)
 
     def convert_pdf_to_png(self, chart_file):
@@ -42,12 +42,13 @@ class Convert_To_PNG:
         os.chdir(current_working_directory)
 
 
-# if __name__ == "__main__":
-#     ctp = Convert_To_PNG()
-#     pdf_blob = ctp.convert_pdf_to_png("/home/arun/code/FAATerminalProceduresFromBulk/00865IL22L.PDF")
-#     imageFile = open("/home/arun/code/FAATerminalProceduresFromBulk/00865IL22L.png", "wb")
-#     imageFile.write(pdf_blob)
-#     imageFile.close()
+if __name__ == "__main__":
+    ctp = Convert_To_PNG()
+    file = open('../../06053AD.PDF', 'rb')
+    pdf_blob = ctp.convert_pdf_to_png(file)
+    imageFile = open("/home/arun/code/FAATerminalProceduresFromBulk/00865IL22L.png", "wb")
+    imageFile.write(pdf_blob)
+    imageFile.close()
 
 
 

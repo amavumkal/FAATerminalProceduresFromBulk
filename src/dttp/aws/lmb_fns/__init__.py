@@ -1,14 +1,12 @@
 import logging
+import os
 from ..s3 import AWSS3
 from zipfile import ZipFile
 from io import BytesIO
 from ...service.chart_service import ChartService
 from ...utils import get_current_cycl
+from ...png_conversion.png import Convert_To_PNG
 logger = logging.getLogger()
-
-def save_to_s3(file):
-    chart_service = ChartService()
-    file.name = file.name[:-3] + 'PDF' if file.name[-3:] == 'PNG' else file.name
 
 def createChartsDic():
     charts = ChartService().get_all_charts_by_cycle(get_current_cycl())
@@ -28,7 +26,6 @@ def dttp_unzip_fn(event, context):
     logger.info('Reading {} from {}'.format(file_key, bucket_name))
     # get the object
     dttp_zip_file = aws_s3.get_obj_bin(file_key)
-    logger.critical(dttp_zip_file)
     dttp_pdfs = ZipFile(dttp_zip_file, 'r')
     temp_name = None
 
@@ -47,3 +44,24 @@ def dttp_unzip_fn(event, context):
 
     logger.critical('complete')
     aws_s3.delete_obj(file_key)
+
+def dttp_thumbnail_fn(event, context):
+
+    bucket_name = event['Records'][0]['s3']['bucket']['name']
+    file_key = event['Records'][0]['s3']['object']['key']
+    aws_s3 = None
+    split_name = file_key.split('/')
+    if not file_key[-3:] == 'PDF':
+        return
+    aws_s3 = AWSS3(bucket_name)
+    logger.info('Reading {} from {}'.format(file_key, bucket_name))
+    # get the object
+    pdf = aws_s3.get_obj_bin(file_key)
+    logger.critical('PDF retrived with name: ' + pdf.name)
+    png_file = BytesIO(Convert_To_PNG().convert_pdf_to_png(pdf))
+    png_file.name = split_name[-1][:-3] + 'PNG'
+    try:
+        aws_s3.save_to_bucket(png_file, folder='thumbnails/' + split_name[1])
+    except Exception as e:
+        logger.critical('for filename: ' + png_file.name)
+        logger.exception(e)

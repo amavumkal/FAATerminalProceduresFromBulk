@@ -2,10 +2,10 @@ import shutil
 import requests
 import xml.etree.ElementTree as ET
 import io
-from .png_conversion.png import *
-from .aws.s3 import AWSS3
-from .models import Chart, Airport
-from .utils import get_current_cycl, get_four_digit_cycle
+from png_conversion.png import *
+from aws.s3 import AWSS3
+from models import Chart, Airport
+from utils import get_current_cycl, get_four_digit_cycle
 
 class DttpBulk:
     def __init__(self, download_directory):
@@ -45,7 +45,7 @@ class DttpBulk:
                             data = chunk
                 zip_file = io.BytesIO(data)
                 zip_file.name = file_name
-                AWSS3().save_to_bucket(zip_file, self.__DOWNLOAD_DIRECTORY)
+                AWSS3().save_to_bucket(zip_file, folder=self.__DOWNLOAD_DIRECTORY)
 
     def get_charts(self):
         if self.__charts:
