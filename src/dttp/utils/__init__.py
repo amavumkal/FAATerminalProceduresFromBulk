@@ -26,7 +26,6 @@ def get_four_digit_cycle():
     date_increment = CYCLE_BASE
     while ((date_increment + TIME_DELTA) <= PRESENT):  # loop while cycle date is less than current date.
         date_increment += TIME_DELTA
-    date_increment -= TIME_DELTA
     cycle_month = str(date_increment.month)
     cycle_year = str(date_increment.year)[-2:]
     if (len(cycle_month) == 1):  # if single digit month adds 0 to resulting string

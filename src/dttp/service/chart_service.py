@@ -2,8 +2,8 @@ import sys
 import json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from ..dao.charts_dao import CHARTS_DAO
-from ..dao.airports_dao import AIRPORTS_DAO
+from ..dao import CHARTS_DAO
+from ..dao import AIRPORTS_DAO
 
 class ChartService:
 
@@ -41,5 +41,27 @@ class ChartService:
 
     def get_all_charts_by_cycle(self, cycle):
         s = self.__session()
-        return self.__charts_dao.get_all_charts_by_cycle(cycle, s)
+        charts = self.__charts_dao.get_all_charts_by_cycle(s, cycle)
+        s.close()
+        return charts
+
+    def get_latest_cycle(self):
+        s = self.__session()
+        cycle = self.__charts_dao.get_latest_cycle(s)
+        s.close()
+        return cycle
+
+    def delete_cycle(self, cycle):
+        s = self.__session()
+        try:
+            self.__charts_dao.delete_cycle(s, cycle)
+        except Exception as e:
+            s.rollback()
+            print(e, file=sys.stderr)
+        finally:
+            s.close()
+
+
+
+
 

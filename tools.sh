@@ -51,20 +51,24 @@ function deploy_unzip_fn() {
   DTTP_DIR='./src/dttp/'
   DTTP_DEST_DIR='./dist/package/dttp/'
   # shellcheck disable=SC2206
-  PACKAGE_ARRAY=('aws' 'dao' 'models' 'service' 'utils')
+  PACKAGE_ARRAY=('models' 'service' 'utils' 'dao')
   start_environment
   pip install --target $PACKAGE_DIR wheel psycopg2-binary SQLAlchemy==1.3.23 boto3==1.17.12
   # shellcheck disable=SC2128
   create_dir $DTTP_DEST_DIR
+  create_dir $DTTP_DEST_DIR'aws'
+  create_dir $DTTP_DEST_DIR'aws/s3'
+  create_dir $DTTP_DEST_DIR'aws/lmb_fns'
+  cp $DTTP_DIR'aws/lmb_fns/dttp_unzip_fn.py' $DTTP_DEST_DIR'aws/lmb_fns'
+  cp -r $DTTP_DIR'aws/s3' $DTTP_DEST_DIR'aws'
   for i in "${PACKAGE_ARRAY[@]}"
   do
-    create_dir $DTTP_DEST_DIR
     cp -r "$DTTP_DIR$i" "$DTTP_DEST_DIR"
   done
   cp $DTTP_DIR'dttp_bulk.py' $DTTP_DEST_DIR
   #cp $DTTP_D
   cp ./src/secret.json $PACKAGE_DIR
-  create_main $'from dttp.aws.lmb_fns import dttp_unzip_fn\ndef lambda_handler(event, context):\n\tdttp_unzip_fn(event, context)'
+  create_main $'from dttp.aws.lmb_fns.dttp_unzip_fn import dttp_unzip_fn\ndef lambda_handler(event, context):\n\tdttp_unzip_fn(event, context)'
   deploy dttp-unzip unzip_fn
   deactivate
 }

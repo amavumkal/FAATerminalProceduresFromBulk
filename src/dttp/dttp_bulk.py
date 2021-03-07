@@ -2,11 +2,11 @@ import shutil
 import requests
 import xml.etree.ElementTree as ET
 import io
-from png_conversion.png import *
-from aws.s3 import AWSS3
-from models import Chart, Airport
-from utils import get_current_cycl, get_four_digit_cycle
-
+import os
+from .aws.s3 import AWSS3
+from .models import Chart, Airport
+from .utils import get_current_cycl, get_four_digit_cycle
+from .service.chart_service import ChartService
 class DttpBulk:
     def __init__(self, download_directory):
         self.__charts = None
@@ -29,7 +29,6 @@ class DttpBulk:
     # pre: method takes no arguments.
     # post: downloads charts from faa digital proand above, the specified commit will be merged to the current active branch. Most of the time, you will want to merge a branch with ducts site and saves to
     def download_bulk_files(self):
-        print('Downloading metafile')
         for letter in self.__ZIP_FILE_LETTERS:
             file_name = 'DDTPP%s_%s.zip' % (letter, get_current_cycl())
             url = 'https://aeronav.faa.gov/upload_313-d/terminal/' + file_name
@@ -77,18 +76,10 @@ class DttpBulk:
             shutil.move(file_name, VOLUME)
         os.chdir(PWD)
 
-    #bulk convert entire dload directory to png
-    def convert_to_png(self):
-        FOLDERS = os.listdir(self.__DOWNLOAD_DIRECTORY)
-        png_convert = Convert_To_PNG()
-        for folder in FOLDERS:
-            FOLDER_PATH = os.path.join(self.__DOWNLOAD_DIRECTORY, folder)
-            if os.path.isdir(FOLDER_PATH):
-                png_convert.convert_pdfs_to_png(FOLDER_PATH)
-
 
     @staticmethod
     def download_metafile():
+        print('Downloading meta file')
         URL = 'http://aeronav.faa.gov/d-tpp/%s/xml_data/d-tpp_Metafile.xml' % (get_four_digit_cycle())
         print(URL)
         request = requests.get(URL)
@@ -133,10 +124,11 @@ class DttpBulk:
 
 
 if __name__ == "__main__":
-    # meta_file = DttpBulk.download_metafile()
-    # charts = DttpBulk.parse_metafile_xml(meta_file)
-    # charts_service = ChartService()
-    # charts_service.add_charts(charts)
+
+    meta_file = DttpBulk.download_metafile()
+    charts = DttpBulk.parse_metafile_xml(meta_file)
+    charts_service = ChartService()
+    charts_service.add_charts(charts)
     DttpBulk('dttp_zipfiles').download_bulk_files()
     print(get_four_digit_cycle())
     print(get_current_cycl())
