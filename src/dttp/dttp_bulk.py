@@ -1,6 +1,7 @@
 import shutil
 import requests
 import xml.etree.ElementTree as ET
+import threading
 import io
 import os
 from .aws.s3 import AWSS3
@@ -33,18 +34,10 @@ class DttpBulk:
             file_name = 'DDTPP%s_%s.zip' % (letter, get_current_cycl())
             url = 'https://aeronav.faa.gov/upload_313-d/terminal/' + file_name
             print('Downloading zip file: ' + url)
-            with requests.get(url, stream=True) as r:
-                r.raise_for_status()
-                data = None
-                for chunk in r.iter_content(chunk_size=819200):
-                    if chunk:
-                        if data:
-                            data += chunk
-                        else:
-                            data = chunk
-                zip_file = io.BytesIO(data)
-                zip_file.name = file_name
-                AWSS3().save_to_bucket(zip_file, folder=self.__DOWNLOAD_DIRECTORY)
+            data = requests.get(url)
+            zip_file = io.BytesIO(data.content)
+            zip_file.name = file_name
+            AWSS3().save_to_bucket(zip_file, folder=self.__DOWNLOAD_DIRECTORY)
 
     def get_charts(self):
         if self.__charts:
@@ -86,11 +79,10 @@ class DttpBulk:
         return io.BytesIO(request.content)
 
     @staticmethod
-    def parse_metafile_xml(fileIn):
-        charts = []
-        if not fileIn:
-            fileIn = DttpBulk.download_metafile()
-        tree = ET.parse(fileIn)
+    def parse_metafile_xml_to_db():
+        file_in = DttpBulk.download_metafile()
+        chart_service = ChartService()
+        tree = ET.parse(file_in)
         states = tree.findall('state_code')
         cycle = get_current_cycl()
         print('Parsing metafile')
@@ -116,9 +108,9 @@ class DttpBulk:
                         chart.png_name = chart.pdf_name[:len(chart.pdf_name) - 4] + '.PNG'
                         chart.chart_type = record.find('chart_code').text
                         chart.airport = airport
-                        charts.append(chart)
+                        chart_service.add_chart_async(chart)
         print('Done Parsing: metafile')
-        return charts
+        chart_service.wait_on_chart_threads()
 
 
 
@@ -126,9 +118,9 @@ class DttpBulk:
 if __name__ == "__main__":
 
     meta_file = DttpBulk.download_metafile()
-    charts = DttpBulk.parse_metafile_xml(meta_file)
+    charts = DttpBulk.parse_metafile_xml_to_db(meta_file)
     charts_service = ChartService()
-    charts_service.add_charts(charts)
+    charts_service.add_chart(charts)
     DttpBulk('dttp_zipfiles').download_bulk_files()
     print(get_four_digit_cycle())
     print(get_current_cycl())

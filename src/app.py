@@ -12,16 +12,14 @@ def main():
     if previous_cycle is not None and int(get_current_cycl()) <= previous_cycle:
         return
     logger.critical('Downloading meta file')
-    meta_file_local = DttpBulk.download_metafile()
-    charts_local = DttpBulk.parse_metafile_xml(meta_file_local)
-    charts_service_local = ChartService()
+    DttpBulk.parse_metafile_xml_to_db()
+    chart_service = ChartService()
     logger.critical('Adding charts to DB')
-    charts_service_local.add_charts(charts_local)
-    DttpBulk('dttp_zipfiles').download_bulk_files()
-    if previous_cycle:
-        charts_service_local.delete_cycle(previous_cycle)
-    print(get_four_digit_cycle())
-    print(get_current_cycl())
+    # DttpBulk('dttp_zipfiles').download_bulk_files()  # DttpBulk('dttp_zipfiles').download_bulk_files()
+    # if previous_cycle:
+    #     chart_service.delete_cycle(previous_cycle)
+    # print(get_four_digit_cycle())
+    # print(get_current_cycl())
 
 
 def dttp_thumbnail_trigger(event, context):

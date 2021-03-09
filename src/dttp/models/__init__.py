@@ -8,7 +8,6 @@ Base = declarative_base()
 
 class Airport(Base):
     __tablename__ = 'airports'
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     airport_ident = Column(String(3), nullable=False)
     icao_ident = Column(String(4), nullable=True)
@@ -20,7 +19,6 @@ class Airport(Base):
 
 class Chart(Base):
     __tablename__ = 'charts'
-
     id = Column(Integer, primary_key= True, autoincrement=True, nullable=False)
     pdf_name = Column(String(50), nullable=False)
     png_name = Column(String(50), nullable=False)
