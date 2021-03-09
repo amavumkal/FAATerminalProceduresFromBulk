@@ -16,10 +16,6 @@ class DttpBulk:
         if not os.path.exists(self.__DOWNLOAD_DIRECTORY):
             os.mkdir(self.__DOWNLOAD_DIRECTORY)
 
-
-    def set_charts(self, charts_in):
-        self.__charts = charts_in
-
     def __clear_dload_dir(self):
         for sub_dir in os.listdir(self.__DOWNLOAD_DIRECTORY):
             if os.path.isdir(sub_dir):
@@ -44,30 +40,6 @@ class DttpBulk:
             return self.__charts
         else:
             raise Exception('Charts list is empty')
-
-    def organize_charts(self):
-        if not self.__charts:
-            raise Exception('Charts list is empty')
-        PWD = os.getcwd()
-        chart_dict = {}
-        os.chdir(self.__DOWNLOAD_DIRECTORY)
-        for chart in self.__charts:
-            PDF_NAME = chart.get_pdf_name()
-            if PDF_NAME in chart_dict:
-                continue
-            else:
-                chart_dict[PDF_NAME] = chart
-
-        for file_name in os.listdir('../'):
-            if file_name in chart_dict:
-                chart = chart_dict[file_name]
-            else:
-                continue
-            VOLUME = chart.get_volume_name()
-            if not os.path.exists(VOLUME):
-                os.mkdir(VOLUME)
-            shutil.move(file_name, VOLUME)
-        os.chdir(PWD)
 
 
     @staticmethod
@@ -111,8 +83,6 @@ class DttpBulk:
                         chart_service.add_chart_async(chart)
         print('Done Parsing: metafile')
         chart_service.wait_on_chart_threads()
-
-
 
 
 if __name__ == "__main__":
