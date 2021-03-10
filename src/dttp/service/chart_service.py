@@ -9,7 +9,7 @@ from ..dao import AIRPORTS_DAO
 
 class ChartService:
 
-    MAX_THREADS = 15
+    MAX_THREADS = 10
 
     def __init__(self):
         secret_json = json.load(open('./secret.json', 'r'))
@@ -20,26 +20,39 @@ class ChartService:
         self.__airports_dao = AIRPORTS_DAO()
         self.__chart_threads_dict = {}
         self.__chart_thread_lock = threading.Lock()
+        self.__airport_insert_locks = {}
+        self.__airport_ids = {}
 
-    def add_chart(self, chart):
+    def add_chart(self, chart, airport):
+        ident = airport.icao_ident if airport.icao_ident else airport.airport_ident
+
         s = self.__session()
         try:
-            airport = chart.airport
-            airprt_rs = None
-            if airport.icao_ident:
-                airprt_rs = self.__airports_dao.get_airport_by_icao_ident(airport.icao_ident, s)
-            elif airport.airport_ident:
-                airprt_rs = self.__airports_dao.get_airport_by_airport_ident(airport.airport_ident, s)
-            if airprt_rs:
-                chart.airport_id = airprt_rs.id
-                chart.airport.id = airprt_rs.id
+            self.__airport_insert_locks[ident].acquire()
+            if ident in self.__airport_ids:
+                chart.airport_id = self.__airport_ids[ident]
             else:
-                chart.airport = self.__airports_dao.add_airport(airport, s)
-                chart.airport_id = chart.airport.id
-            self.__charts_dao.add_chart(chart, s)
+                if airport.icao_ident:
+                    airprt_rs = self.__airports_dao.get_airport_by_icao_ident(airport.icao_ident, s)
+                else:
+                    airprt_rs = self.__airports_dao.get_airport_by_airport_ident(airport.airport_ident, s)
+                if airprt_rs:
+                    self.__airport_ids[ident] = airprt_rs.id
+                    chart.airport_id = airprt_rs.id
+                else:
+                    self.__airports_dao.add_airport(airport, s)
+                    s.flush()
+                    chart.airport_id = airport.id
+                    self.__airport_ids[ident] = airport.id
+                    s.commit()
+            self.__airport_insert_locks[ident].release()
+            s.add(chart)
             s.commit()
         except Exception as e:
+            if self.__airport_insert_locks[ident].locked():
+                self.__airport_insert_locks[ident].release()
             s.rollback()
+            print('exception', file=sys.stderr)
             print(e, file=sys.stderr)
         finally:
             s.close()
@@ -61,13 +74,19 @@ class ChartService:
                     time.sleep(.1)
         self.__chart_thread_lock.release()
 
+
     def wait_on_chart_threads(self):
         for key in self.__chart_threads_dict:
             self.__chart_threads_dict[key].join()
 
-    def add_chart_async(self, chart):
+    def add_chart_async(self, chart, airport):
+        self.__chart_thread_lock.acquire()
+        ident = airport.icao_ident if airport.icao_ident else airport.airport_ident
+        if ident not in self.__airport_insert_locks:
+            self.__airport_insert_locks[ident] = threading.Lock()
+        self.__chart_thread_lock.release()
         self.__manage_chart_threads()
-        t = threading.Thread(target=self.add_chart, args=(chart,))
+        t = threading.Thread(target=self.add_chart, args=(chart, airport,))
         self.__chart_thread_lock.acquire()
         if chart.pdf_name in self.__chart_threads_dict.keys():
             i = 0
@@ -75,7 +94,6 @@ class ChartService:
             while new_pdf_name in self.__chart_threads_dict.keys():
                 i += 1
                 new_pdf_name = chart.pdf_name + str(i)
-
         else:
             self.__chart_threads_dict[chart.pdf_name] = t
         t.start()
@@ -97,6 +115,7 @@ class ChartService:
         s = self.__session()
         try:
             self.__charts_dao.delete_cycle(s, cycle)
+            s.commit()
         except Exception as e:
             s.rollback()
             print(e, file=sys.stderr)

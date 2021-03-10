@@ -6,20 +6,21 @@ import logging
 
 logger = logging.getLogger()
 
-
 def main():
-    previous_cycle = ChartService().get_latest_cycle()
+    chart_service = ChartService()
+    previous_cycle = chart_service.get_latest_cycle()
     if previous_cycle is not None and int(get_current_cycl()) <= previous_cycle:
         return
     logger.critical('Downloading meta file')
-    DttpBulk.parse_metafile_xml_to_db()
-    chart_service = ChartService()
+    t = threading.Thread(target=DttpBulk.parse_metafile_xml_to_db)
+
     logger.critical('Adding charts to DB')
-    # DttpBulk('dttp_zipfiles').download_bulk_files()  # DttpBulk('dttp_zipfiles').download_bulk_files()
-    # if previous_cycle:
-    #     chart_service.delete_cycle(previous_cycle)
-    # print(get_four_digit_cycle())
-    # print(get_current_cycl())
+    t.start()
+    DttpBulk('dttp_zipfiles').download_bulk_files(t)
+    if t.is_alive():
+        t.join()
+    if previous_cycle:
+        chart_service.delete_cycle(previous_cycle)
 
 
 def dttp_thumbnail_trigger(event, context):

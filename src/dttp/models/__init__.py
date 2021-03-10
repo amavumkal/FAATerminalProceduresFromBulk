@@ -14,7 +14,6 @@ class Airport(Base):
     airport_name = Column(String(50), nullable=True)
     state = Column(String(2), nullable=False)
     city = Column(String(50), nullable=False)
-    charts = relationship('Chart', back_populates='airport')
 
 
 class Chart(Base):
@@ -26,5 +25,4 @@ class Chart(Base):
     procedure_name = Column(String(50), nullable=False)
     chart_type = Column(String(10), nullable=False)
     cycle = Column(Integer, nullable=False)
-    airport_id = Column(Integer, ForeignKey('airports.id'))
-    airport = relationship('Airport', cascade="merge")
+    airport_id = Column(Integer, nullable=False)

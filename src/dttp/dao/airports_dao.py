@@ -3,8 +3,7 @@ from ..models import Airport
 class AIRPORTS_DAO:
 
     def add_airport(self, airport, session):
-        session.add(airport)
-        return airport
+        return session.add(airport)
 
     def get_airport_by_icao_ident(self, ident, session):
         return session.query(Airport).filter_by(icao_ident=ident).first()
@@ -18,4 +17,4 @@ class AIRPORTS_DAO:
             rs = self.get_airport_by_icao_ident(airport.icao_ident, session)
         elif airport.airport_ident:
             rs = self.get_airport_by_airport_ident(airport.airport_ident, session)
-        return rs if rs else None
+        return rs is not None
