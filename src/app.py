@@ -10,6 +10,7 @@ def main():
     chart_service = ChartService()
     previous_cycle = chart_service.get_latest_cycle()
     if previous_cycle is not None and int(get_current_cycl()) <= previous_cycle:
+        logger.critical('exiting cycle has not changed, current cycle: ' + get_current_cycl() + ' previous cycle: ' + str(previous_cycle))
         return
     logger.critical('Downloading meta file')
     t = threading.Thread(target=DttpBulk.parse_metafile_xml_to_db)

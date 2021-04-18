@@ -85,6 +85,18 @@ function deploy_png_fn() {
   docker push 008274210142.dkr.ecr.us-east-2.amazonaws.com/png_convert_fn:latest
 }
 
+function deploy_dttp() {
+  cp /etc/ImageMagick-6/policy.xml .
+  cat ./dttp_docker_file.txt > Dockerfile
+  docker rmi dttp
+  docker rmi dttp:latest 008274210142.dkr.ecr.us-east-2.amazonaws.com/dttp:latest
+  docker build -t dttp .
+  docker tag dttp:latest 008274210142.dkr.ecr.us-east-2.amazonaws.com/dttp:latest
+  rm policy.xml
+  sudo aws ecr get-login-password --region us-east-2 | sudo docker login --username AWS --password-stdin 008274210142.dkr.ecr.us-east-2.amazonaws.com
+  docker push 008274210142.dkr.ecr.us-east-2.amazonaws.com/dttp:latest
+}
+
 
 
 while getopts ":d:" opt; do
@@ -96,6 +108,9 @@ while getopts ":d:" opt; do
           ;;
         png)
           deploy_png_fn
+          ;;
+        dttp)
+          deploy_dttp
           ;;
         *)
           echo "Invalid argument: $OPTARG" >&2

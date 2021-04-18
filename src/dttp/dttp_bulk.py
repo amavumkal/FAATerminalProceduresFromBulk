@@ -3,18 +3,22 @@ import requests
 import xml.etree.ElementTree as ET
 import threading
 import io
+import logging
 import os
 from .aws.s3 import AWSS3
 from .models import Chart, Airport
 from .utils import get_current_cycl, get_four_digit_cycle
 from .service.chart_service import ChartService
+
+
+logger = logging.getLogger()
+
+
 class DttpBulk:
     def __init__(self, s3_folder):
         self.__charts = None
         self.__S3_FOLDER = s3_folder
         self.__ZIP_FILE_LETTERS = ['D', 'C', 'B', 'A']
-        if not os.path.exists(self.__S3_FOLDER):
-            os.mkdir(self.__S3_FOLDER)
 
     def __clear_dload_dir(self):
         for sub_dir in os.listdir(self.__S3_FOLDER):
@@ -31,17 +35,17 @@ class DttpBulk:
         for letter in self.__ZIP_FILE_LETTERS:
             file_name = 'DDTPP%s_%s.zip' % (letter, get_current_cycl())
             url = 'https://aeronav.faa.gov/upload_313-d/terminal/' + file_name
-            print('Downloading zip file: ' + url)
+            logger.critical('Downloading zip file: ' + url)
             data = requests.get(url)
             zip_file = io.BytesIO(data.content)
             zip_file.name = file_name
             if db_thread:
                 db_thread.join()
             t = threading.Thread(target=awss3.save_to_bucket, args=(zip_file,), kwargs=({'folder': self.__S3_FOLDER}))
-            print('Uploading zip file: ' + url)
+            logger.critical('Uploading zip file: ' + url)
             s3_threads.append(t)
             t.start()
-        print('waiting for s3 uploads')
+        logger.critical('waiting for s3 uploads')
         for thread in s3_threads:
             thread.join()
 
@@ -54,9 +58,9 @@ class DttpBulk:
 
     @staticmethod
     def download_metafile():
-        print('Downloading meta file')
+        logger.critical('Downloading meta file')
         URL = 'http://aeronav.faa.gov/d-tpp/%s/xml_data/d-tpp_Metafile.xml' % (get_four_digit_cycle())
-        print(URL)
+        logger.critical(URL)
         request = requests.get(URL)
         return io.BytesIO(request.content)
 
@@ -67,7 +71,7 @@ class DttpBulk:
         tree = ET.parse(file_in)
         states = tree.findall('state_code')
         cycle = get_current_cycl()
-        print('Parsing metafile')
+        logger.critical('Parsing metafile')
         for state in states:
             state_name = state.attrib['ID']
             for city in state.findall('city_name'):
@@ -90,7 +94,7 @@ class DttpBulk:
                         chart.png_name = chart.pdf_name[:len(chart.pdf_name) - 4] + '.PNG'
                         chart.chart_type = record.find('chart_code').text
                         chart_service.add_chart_async(chart, airport)
-        print('Done Parsing: metafile')
+        logger.critical('Done Parsing: metafile')
         chart_service.wait_on_chart_threads()
 
 
@@ -101,6 +105,5 @@ if __name__ == "__main__":
     charts_service = ChartService()
     charts_service.add_chart(charts)
     DttpBulk('dttp_zipfiles').download_bulk_files()
-    print(get_four_digit_cycle())
-    print(get_current_cycl())
+
 

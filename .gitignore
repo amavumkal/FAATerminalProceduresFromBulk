@@ -126,7 +126,7 @@ environ/
 **/pycache/**
 src/meta
 venv.bak/
-
+Dockerfile
 # Spyder project settings
 .spyderproject
 .spyproject
